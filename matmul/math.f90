@@ -31,6 +31,7 @@ contains
         real, dimension(:, :) :: X, b
         real, allocatable, dimension(:, :) :: Z
         integer, dimension(2) :: dimx, dimb, dimz
+        integer :: i, j
 
         dimx = shape(X)
         dimb = shape(b)
@@ -49,11 +50,14 @@ contains
         Z(:, 1:dimx(2)) = X
         Z(:, dimx(2)+1) = b
 
+        do i = 1, dimz(1) !this works because base matrix is square
+            call normalize(Z, i)
+            call clear_col(Z, i)
+        
+            
+        end do
 
-        while (.not. is_reduced(Z))
-        ! NEED TO FINISH HERE (IMPLEMENT SWAP AND SCAPE SUBROUTINES)
 
-        end while
     end function rref
 
 
