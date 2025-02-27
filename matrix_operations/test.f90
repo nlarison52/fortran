@@ -1,22 +1,34 @@
-program test
+program test_rref
     use math
+    implicit none
 
-    integer, allocatable, dimension(:, :) :: b, A, x
-    integer :: i
+    real, allocatable, dimension(:,:) :: A, R
+    integer :: i, j
 
-    allocate(A(2, 2))
-    allocate(x(2, 1))
+    ! allocate and define a test matrix
+    allocate(A(3,4))  ! example 3x4 augmented matrix
 
-    A = 1
-    x = 1
+    ! defining the test matrix
+    A = reshape([1.0, 2.0, -1.0,  8.0, &
+                 -3.0, -1.0, 2.0, -11.0, &
+                 -2.0, 1.0, 2.0, -3.0], [3,4])
 
-    b = mm(A, x)
-
-    do i = 1, 2
-        print *, b(i, :)
+    ! print original matrix
+    print *, "original matrix A:"
+    do i = 1, size(A,1)
+        print "(4F8.3)", A(i, :)
     end do
 
-    deallocate(A)
-    deallocate(x)
-    deallocate(b)
-end program test
+    ! compute rref
+    R = rref(A)
+
+    ! print reduced matrix
+    print *, "reduced row echelon form (rref) of A:"
+    do i = 1, size(R,1)
+        print "(4F8.3)", R(i, :)
+    end do
+
+    ! cleanup
+    deallocate(A, R)
+
+end program test_rref

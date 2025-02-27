@@ -26,36 +26,50 @@ contains
         end do
     end function mm
 
-
-    function rref(X) result(Z) 
+    function rref(X) result(Z)
         real, dimension(:, :) :: X
         real, allocatable, dimension(:, :) :: Z
         integer, dimension(2) :: dimx
-        integer :: i, j
+        integer :: i, j, cur_pivot, pivot_row
         real, parameter :: eps = 1.0E-7
+        real :: max_val
 
         dimx = shape(X)
+        allocate(Z(dimx(1), dimx(2)))
+        Z = X  ! copy X into Z so original matrix remains unchanged
 
+        cur_pivot = 1
         do i = 1, dimx(1)
-            if (abs(X(i, i)) < eps) then
-                do j = i + 1, dimx(1)
-                    if (X(j, i) /= 0) then
-                       call swap_rows(X, i, j)
-                       exit
-                   end if 
-                end do
+            ! step 1: find the best pivot row
+            pivot_row = -1
+            max_val = 0.0
+
+            do j = i, dimx(1)
+                if (abs(Z(j, cur_pivot)) > max_val) then
+                    max_val = abs(Z(j, cur_pivot))
+                    pivot_row = j
+                end if
+            end do
+
+            ! step 2: if pivot is zero, move to next column
+            if (pivot_row == -1 .or. max_val < eps) then
+                cur_pivot = cur_pivot + 1
+                if (cur_pivot > dimx(2)) then
+                    error stop "system is inconsistent"
+                end if
+                cycle  ! skip current row and move to next
             end if
 
-            
+            ! step 3: swap pivot row if necessary
+            if (pivot_row /= i) call swap_rows(Z, i, pivot_row)
 
+            ! step 4: normalize pivot row
+            call normalize_row(Z, i, cur_pivot)
+
+            ! step 5: clear column
+            call clear_col(Z, i, cur_pivot)
         end do
-
-
-
-
-        
     end function rref
-
 
     subroutine normalize_row(X, row, col)
         implicit none
@@ -78,7 +92,7 @@ contains
         integer, intent(in) :: row, col
         integer :: i
 
-        do i = 1, shape(X, 1)
+        do i = 1, size(X, 1)
             if (i == row) cycle
             X(i, :) = X(i, :) - X(row, :) * X(i, col)
         end do
@@ -118,12 +132,12 @@ contains
                 if (i == j) then
                     if (Z(i, j) /= 1) then
                         res = .false.
-                        end
+                        exit
                     end if
                 else
                     if (Z(i, j) /= 0) then
                         res = .false.
-                        end
+                        exit
                     end if
                 end if
             end do
