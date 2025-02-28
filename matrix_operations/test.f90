@@ -9,11 +9,11 @@ program test_rref
     allocate(A(3,4))  ! example 3x4 augmented matrix
 
     ! defining the test matrix
-    A = reshape([1.0, 2.0, -1.0,  8.0, &
-                 -3.0, -1.0, 2.0, -11.0, &
-                 -2.0, 1.0, 2.0, -3.0], [3,4])
+    A = reshape([1.0, 2.0, 3.0, &
+             4.0, 5.0, 6.0, &
+             0.0, 0.0, 0.0], [3,3]) 
 
-    ! print original matrix
+!     print original matrix
     print *, "original matrix A:"
     do i = 1, size(A,1)
         print "(4F8.3)", A(i, :)
