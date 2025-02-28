@@ -27,6 +27,7 @@ contains
     end function mm
 
     function rref(X) result(Z)
+        implicit none
         real, dimension(:, :) :: X
         real, allocatable, dimension(:, :) :: Z
         integer, dimension(2) :: dimx
