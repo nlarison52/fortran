@@ -32,43 +32,28 @@ contains
         integer, dimension(2) :: dimx
         integer :: i, j, cur_pivot, pivot_row
         real, parameter :: eps = 1.0E-7
-        real :: max_val
 
         dimx = shape(X)
         allocate(Z(dimx(1), dimx(2)))
         Z = X  ! copy X into Z so original matrix remains unchanged
 
-        cur_pivot = 1
+        cur_pivot = 0
         do i = 1, dimx(1)
-            ! step 1: find the best pivot row
-            pivot_row = -1
-            max_val = 0.0
-
-            do j = i, dimx(1)
-                if (abs(Z(j, cur_pivot)) > max_val) then
-                    max_val = abs(Z(j, cur_pivot))
-                    pivot_row = j
-                end if
+            do while (abs(Z(i, cur_pivot)) < eps)
+                cur_pivot = cur_pivot + 1
+                do j = i, dimx(2)
+                    if (abs(Z(j, cur_pivot)) > eps) then
+                        call swap_rows(X, i, j)
+                        exit
+                    end if
+                end do
             end do
 
-            ! step 2: if pivot is zero, move to next column
-            if (pivot_row == -1 .or. max_val < eps) then
-                cur_pivot = cur_pivot + 1
-                if (cur_pivot > dimx(2)) then
-                    error stop "system is inconsistent"
-                end if
-                cycle  ! skip current row and move to next
-            end if
-
-            ! step 3: swap pivot row if necessary
-            if (pivot_row /= i) call swap_rows(Z, i, pivot_row)
-
-            ! step 4: normalize pivot row
             call normalize_row(Z, i, cur_pivot)
-
-            ! step 5: clear column
             call clear_col(Z, i, cur_pivot)
         end do
+
+
     end function rref
 
     subroutine normalize_row(X, row, col)
