@@ -1,22 +1,23 @@
-program main
+program solve_system
     implicit none
-    real :: x, y
+    integer, parameter :: n = 2, nrhs = 1, lda = n, ldb = n
+    integer :: ipiv(n), info
+    real :: A(lda, n), B(ldb, nrhs)
 
-    print *, "Enter a temperature in F: "
-    read *, x
+    ! Matrix A in column-major order (LAPACK format)
+    A = reshape([2.0, 1.0, &
+                 1.0, 3.0], shape(A))
 
-    y = convert(x)
+    ! Right-hand side B (2D array)
+    B = reshape([8.0, 13.0], shape(B))
 
-    print *, "Temperature in C: ", y
+    ! Solve Ax = B using SGESV
+    call SGESV(n, nrhs, A, lda, ipiv, B, ldb, info)
 
-contains
-
-     function convert(f) result(c)
-        real, intent(in) :: f
-        real :: c
-
-        c = 5.0 / 9.0 * (f - 32.0)
-    end function convert
-
-
-end program main
+    if (info == 0) then
+        print *, "Solution vector x:"
+        print *, B  ! B now contains x
+    else
+        print *, "SGESV failed with info =", info
+    end if
+end program solve_system
