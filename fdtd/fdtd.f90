@@ -1,12 +1,13 @@
 program fdtd
     implicit none
-    integer, parameter :: nx = 100, ny = 100, nt = 5000
+    integer, parameter :: nx = 200, ny = 200, nt = 10000
     real, parameter :: dx = 1.0, dy = 1.0, dt = 0.1
     real :: Hx(nx, ny), Hy(nx, ny), Ez(nx, ny)
     real :: mu(nx, ny), epsilon(nx, ny)
     integer :: i, j, t, i_center, j_center, radius, percent, filled, bar_length
     real, parameter :: c_mur = (1.0 - dt / dx) / (1.0 + dt / dx)
     real :: f0, f1, chirp_duration, t_norm
+    real :: a, b
 
     Hx = 0.0
     Hy = 0.0
@@ -32,6 +33,20 @@ program fdtd
 !            end if
 !        end do
 !    end do
+
+    i_center = nx / 2
+    j_center = ny / 2
+    a = nx / 6   ! Semi-major axis (adjustable)
+    b = ny / 10   ! Semi-minor axis (adjustable)
+
+    do i = 1, nx
+        do j = 1, ny
+            if (((i - i_center)**2 / a**2) + ((j - j_center)**2 / b**2) <= 1.0) then
+                mu(i, j) = 2.0         ! Change permeability inside ellipse
+                epsilon(i, j) = 4.0    ! Change permittivity inside ellipse
+            end if
+        end do
+    end do
 
     print *, "Starting FDTD Simulation..."
     bar_length = 40  
@@ -62,11 +77,24 @@ program fdtd
             end do
         end do
 
+
+
+        ! Apply Mur's Absorbing Boundary Conditions
+        do i = 2, nx-1
+            Ez(i, 1) = Ez(i, 2) + c_mur * (Ez(i, 2) - Ez(i, 3))
+            Ez(i, ny) = Ez(i, ny-1) + c_mur * (Ez(i, ny-1) - Ez(i, ny-2))
+        end do
+
+        do j = 2, ny-1
+            Ez(1, j) = Ez(2, j) + c_mur * (Ez(2, j) - Ez(3, j))
+            Ez(nx, j) = Ez(nx-1, j) + c_mur * (Ez(nx-1, j) - Ez(nx-2, j))
+        end do
+
         ! Write to file every 50 steps
         if (mod(t, 50) == 0) then
             write(10, *) "Timestep:", t
             do i = 1, nx
-                write(10, '(100F8.4)') (Ez(i, j), j = 1, ny)
+                write(10, '(200F8.4)') (Ez(i, j), j = 1, ny)
             end do
         end if
 

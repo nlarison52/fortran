@@ -1,67 +1,83 @@
-clc; clear; close all;
+% MATLAB script to visualize FDTD simulation as an animated heatmap with continuous looping
+clear, close all, clc
 
-% Open the data file
+% Open the output file
 filename = 'output.dat';
-fid = fopen(filename, 'r');
-
-if fid == -1
-    error('Failed to open file: %s\nCheck if the file exists and that you are in the correct directory.', filename);
+fileID = fopen(filename, 'r');
+if fileID == -1
+    error('Cannot open file: %s', filename);
 end
 
-% Read file line by line
-data = [];
-timestep = [];
-nx = 100; ny = 100; % Make sure this matches your Fortran grid size
-frame = 0;
-object_rect = [];
+% Initialize variables
+nx = 200;
+ny = 200;
+Ez = zeros(nx, ny);
+timesteps = [];
+data_blocks = {};
 
-while ~feof(fid)
-    line = fgetl(fid);
-    
-    if contains(line, 'Object')  % Read object coordinates
-        object_rect = sscanf(line, 'Object: %d %d %d %d');  % Extract rectangle bounds
-    elseif contains(line, 'Timestep')  % Read timestep information
-        frame = frame + 1;
-        timestep(frame) = str2double(extractAfter(line, ':'));
-        data(:,:,frame) = zeros(nx, ny); % Initialize frame data
-        row = 1;
-    else
-        nums = sscanf(line, '%f');
-        if ~isempty(nums)
-            data(row,:,frame) = nums'; % Read row data into the frame
-            row = row + 1;
+% Read the file
+disp('Reading simulation data...');
+while ~feof(fileID)
+    line = fgetl(fileID);
+    if ischar(line) && contains(line, 'Timestep:')
+        % Extract timestep number, handling extra spaces
+        line = strtrim(line); % Remove leading/trailing spaces
+        parts = split(line, ':'); % Split at colon
+        timestep = str2double(strtrim(parts{2})); % Convert second part to number
+        if isnan(timestep)
+            error('Failed to parse timestep from line: %s', line);
         end
+        fprintf('Found timestep: %d\n', timestep); % Debug output
+        timesteps = [timesteps, timestep];
+        
+        % Read the next nx lines for Ez data (200 values per line)
+        block = zeros(nx, ny);
+        for i = 1:nx
+            data_line = fgetl(fileID);
+            if ischar(data_line)
+                values = sscanf(data_line, '%f');
+                if length(values) ~= ny
+                    error('Expected %d values for i=%d, got %d', ny, i, length(values));
+                end
+                block(i, :) = values(:)';
+            else
+                error('Missing data line for i=%d after timestep %d', i, timestep);
+            end
+        end
+        data_blocks{end+1} = block;
     end
 end
+fclose(fileID);
+disp('Data reading complete.');
+fprintf('Number of timesteps found: %d\n', length(timesteps));
 
-fclose(fid);
+% Check if data was found
+if isempty(timesteps)
+    error('No timesteps found in output.dat. Check file format.');
+end
 
-% Create a figure and colormap
-figure;
+% Hardcode the range for Ez color scaling
+caxis_limit = [-1.6, 1.6];
+fprintf('Color axis limits hardcoded to: [%f, %f]\n', caxis_limit(1), caxis_limit(2));
+
+% Set up the figure for animation
+figure('Name', 'FDTD Simulation - Ez Field Heatmap', 'NumberTitle', 'off');
 colormap('jet');
+h = imagesc(data_blocks{1}); % Use first block as initial heatmap
 colorbar;
-caxis([-1 1]);  % Adjust color scale to match Ez values
+caxis(caxis_limit); % Apply hardcoded color limits
+title(sprintf('Ez Field (Timestep %d)', timesteps(1)));
+xlabel('X Grid');
+ylabel('Y Grid');
+axis equal tight;
 
-% Set up the heat map
-h = imagesc(data(:,:,1));  % Initialize with the first frame
-title(['Timestep: ', num2str(timestep(1))]);
-xlabel('Grid X');
-ylabel('Grid Y');
-
-% Infinite animation loop
+% Animation loop with continuous cycling
+disp('Starting animation... Press Ctrl+C to stop.');
 while true
-    for frame = 1:length(timestep)
-        set(h, 'CData', data(:,:,frame));  % Update heatmap data
-        title(['Timestep: ', num2str(timestep(frame))]);
-
-        % Draw the object as a rectangle
-        hold on;
-        if ~isempty(object_rect)
-            rectangle('Position', [object_rect(1), object_rect(3), object_rect(2)-object_rect(1), object_rect(4)-object_rect(3)], ...
-                      'EdgeColor', 'k', 'LineWidth', 2);  % Black rectangle
-        end
-        hold off;
-        
-        pause(0.1);  % Control animation speed
+    for t = 1:length(timesteps)
+        set(h, 'CData', data_blocks{t});
+        title(sprintf('Ez Field (Timestep %d)', timesteps(t)));
+        pause(0.05);
+        drawnow;
     end
 end
