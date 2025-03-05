@@ -1,6 +1,6 @@
 program fdtd
     implicit none
-    integer, parameter :: nx = 100, ny = 100, nt = 2500
+    integer, parameter :: nx = 100, ny = 100, nt = 5000
     real, parameter :: dx = 1.0, dy = 1.0, dt = 0.1
     real :: Hx(nx, ny), Hy(nx, ny), Ez(nx, ny)
     real :: mu(nx, ny), epsilon(nx, ny)
@@ -24,18 +24,17 @@ program fdtd
     j_center = ny / 2
     radius = min(nx, ny) / 6
 
-    do i = 1, nx
-        do j = 1, ny
-            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
-                mu(i, j) = 2.0
-                epsilon(i, j) = 4.0
-            end if
-        end do
-    end do
+!    do i = 1, nx
+!        do j = 1, ny
+!            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
+!                mu(i, j) = 2.0
+!                epsilon(i, j) = 4.0
+!            end if
+!        end do
+!    end do
 
-    ! Initialize badass progress bar
     print *, "Starting FDTD Simulation..."
-    bar_length = 40  ! Length of progress bar
+    bar_length = 40  
 
     do t = 1, nt
 
