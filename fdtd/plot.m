@@ -1,5 +1,10 @@
-% MATLAB script to visualize FDTD simulation as an animated heatmap with continuous looping
+% MATLAB script to visualize FDTD simulation as an animated heatmap with realistic units
 clear, close all, clc
+
+% Real-world unit conversions
+c = 3e8;                  % Speed of light (m/s)
+dx_real = 1e-3;          % Spatial step size (1 mm)
+dt_real = dx_real / (2*c); % Time step based on CFL condition
 
 % Open the output file
 filename = 'output.dat';
@@ -62,18 +67,19 @@ if isempty(timesteps)
     error('No timesteps found in output.dat. Check file format.');
 end
 
-% Hardcoded color limits for visualization
-caxis_limit = [-1.6, 1.6];
+% Physical axes (converted to meters)
+x_axis = (1:nx) * dx_real;
+y_axis = (1:ny) * dx_real;
 
 % Visualization setup
 figure('Name', 'FDTD Simulation - Ez Field Heatmap', 'NumberTitle', 'off');
 colormap('jet');
-h = imagesc(data_blocks{1});
+h = imagesc(x_axis, y_axis, data_blocks{1});
 colorbar;
-caxis(caxis_limit);
-title(sprintf('Ez Field (Timestep %d)', timesteps(1)));
-xlabel('X Grid');
-ylabel('Y Grid');
+caxis([-1.6, 1.6]);
+title(sprintf('Ez Field at %.3f ns', timesteps(1)*dt_real*1e9));
+xlabel('X Position (m)');
+ylabel('Y Position (m)');
 axis equal tight;
 
 % Infinite animation loop
@@ -81,7 +87,7 @@ disp('Starting animation... Press Ctrl+C to stop.');
 while true
     for t = 1:length(timesteps)
         set(h, 'CData', data_blocks{t});
-        title(sprintf('Ez Field (Timestep %d)', timesteps(t)));
+        title(sprintf('Ez Field at %.3f ns', timesteps(t)*dt_real*1e9));
         pause(0.05);
         drawnow;
     end
