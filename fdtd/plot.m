@@ -16,21 +16,21 @@ timesteps = [];
 data_blocks = {};
 
 % Read the file
-disp('Reading simulation data...');
+fprintf('Reading simulation data...');
+count = 0;
 while ~feof(fileID)
     line = fgetl(fileID);
     if ischar(line) && contains(line, 'Timestep:')
-        % Extract timestep number, handling extra spaces
-        line = strtrim(line); % Remove leading/trailing spaces
-        parts = split(line, ':'); % Split at colon
-        timestep = str2double(strtrim(parts{2})); % Convert second part to number
+        % Extract timestep number
+        line = strtrim(line);
+        parts = split(line, ':');
+        timestep = str2double(strtrim(parts{2}));
         if isnan(timestep)
             error('Failed to parse timestep from line: %s', line);
         end
-        fprintf('Found timestep: %d\n', timestep); % Debug output
         timesteps = [timesteps, timestep];
         
-        % Read the next nx lines for Ez data (200 values per line)
+        % Read nx lines for Ez data
         block = zeros(nx, ny);
         for i = 1:nx
             data_line = fgetl(fileID);
@@ -45,10 +45,16 @@ while ~feof(fileID)
             end
         end
         data_blocks{end+1} = block;
+        
+        % Simple progress indicator
+        count = count + 1;
+        if mod(count,10)==0
+            fprintf('.');
+        end
     end
 end
 fclose(fileID);
-disp('Data reading complete.');
+fprintf(' done!\n');
 fprintf('Number of timesteps found: %d\n', length(timesteps));
 
 % Check if data was found
@@ -56,22 +62,21 @@ if isempty(timesteps)
     error('No timesteps found in output.dat. Check file format.');
 end
 
-% Hardcode the range for Ez color scaling
+% Hardcoded color limits for visualization
 caxis_limit = [-1.6, 1.6];
-fprintf('Color axis limits hardcoded to: [%f, %f]\n', caxis_limit(1), caxis_limit(2));
 
-% Set up the figure for animation
+% Visualization setup
 figure('Name', 'FDTD Simulation - Ez Field Heatmap', 'NumberTitle', 'off');
 colormap('jet');
-h = imagesc(data_blocks{1}); % Use first block as initial heatmap
+h = imagesc(data_blocks{1});
 colorbar;
-caxis(caxis_limit); % Apply hardcoded color limits
+caxis(caxis_limit);
 title(sprintf('Ez Field (Timestep %d)', timesteps(1)));
 xlabel('X Grid');
 ylabel('Y Grid');
 axis equal tight;
 
-% Animation loop with continuous cycling
+% Infinite animation loop
 disp('Starting animation... Press Ctrl+C to stop.');
 while true
     for t = 1:length(timesteps)

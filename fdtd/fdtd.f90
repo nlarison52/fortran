@@ -1,6 +1,6 @@
 program fdtd
     implicit none
-    integer, parameter :: nx = 200, ny = 200, nt = 10000
+    integer, parameter :: nx = 200, ny = 200, nt = 2500
     real, parameter :: dx = 1.0, dy = 1.0, dt = 0.1
     real :: Hx(nx, ny), Hy(nx, ny), Ez(nx, ny)
     real :: mu(nx, ny), epsilon(nx, ny)
@@ -25,28 +25,31 @@ program fdtd
     j_center = ny / 2
     radius = min(nx, ny) / 6
 
-!    do i = 1, nx
-!        do j = 1, ny
-!            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
-!                mu(i, j) = 2.0
-!                epsilon(i, j) = 4.0
-!            end if
-!        end do
-!    end do
+    ! this is for a circle
+    do i = 1, nx
+        do j = 1, ny
+            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
+                mu(i, j) = 2.0
+                epsilon(i, j) = 4.0
+            end if
+        end do
+    end do
 
+    ! placement of ellipse
     i_center = nx / 2
     j_center = ny / 2
     a = nx / 6   ! Semi-major axis (adjustable)
     b = ny / 10   ! Semi-minor axis (adjustable)
 
-    do i = 1, nx
-        do j = 1, ny
-            if (((i - i_center)**2 / a**2) + ((j - j_center)**2 / b**2) <= 1.0) then
-                mu(i, j) = 2.0         ! Change permeability inside ellipse
-                epsilon(i, j) = 4.0    ! Change permittivity inside ellipse
-            end if
-        end do
-    end do
+    ! this is for a ellipse
+!    do i = 1, nx
+!        do j = 1, ny
+!            if (((i - i_center)**2 / a**2) + ((j - j_center)**2 / b**2) <= 1.0) then
+!                mu(i, j) = 2.0         ! Change permeability inside ellipse
+!                epsilon(i, j) = 4.0    ! Change permittivity inside ellipse
+!            end if
+!        end do
+!    end do
 
     print *, "Starting FDTD Simulation..."
     bar_length = 40  
