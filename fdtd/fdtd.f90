@@ -5,6 +5,7 @@ program fdtd
     real :: Hx(nx, ny), Hy(nx, ny), Ez(nx, ny)
     real :: mu(nx, ny), epsilon(nx, ny)
     integer :: i, j, t, i_center, j_center, radius, percent, filled, bar_length
+    integer :: tx_x, tx_y, rx_x, rx_y
     real, parameter :: c_mur = (1.0 - dt / dx) / (1.0 + dt / dx)
     real :: f0, f1, chirp_duration, t_norm
     real :: a, b
@@ -18,8 +19,13 @@ program fdtd
     f0 = 0.05
     f1 = 0.2
     chirp_duration = 100
+    tx_x = 2
+    tx_y = 2
+    rx_x = tx_x
+    rx_y = tx_y
 
     open(10, file="output.dat", status="replace")
+    open(20, file="radar.dat", status="replace")
 
     i_center = nx / 2
     j_center = ny / 2
@@ -58,7 +64,7 @@ program fdtd
 
         if (t <= chirp_duration) then
             t_norm = real(t) / chirp_duration
-            Ez(2, 2) = sin(2 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t)
+            Ez(tx_x, tx_y) = sin(2 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t)
         end if
         
         do i = 1, nx
@@ -99,6 +105,11 @@ program fdtd
             do i = 1, nx
                 write(10, '(200F8.4)') (Ez(i, j), j = 1, ny)
             end do
+        end if
+
+        ! radar rx write
+        if (mod(t, 5) == 0) then
+            write(20, '(I5, F10.5)') t, Ez(rx_x, rx_y)
         end if
 
         if (mod(t, 100) == 0) then
