@@ -26,7 +26,7 @@ program fdtd
     f0 = 0.05
     f1 = 0.2
     chirp_duration = 10
-    steer_angle_deg = 45.0
+    steer_angle_deg = -90.0
     rx_x = 25
     rx_y = 100
 
@@ -125,6 +125,11 @@ program fdtd
             end do
         end do
 
+!        do i = 1, nx
+!            Ez(24, i) = 0.0
+!            Ezx(24, i) = 0.0  ! Ensure PML fields are consistent
+!            Ezy(24, i) = 0.0
+!        end do
         ! Removed Mur's ABC - PML handles boundaries now
 
         if (mod(t, 5) == 0) then
