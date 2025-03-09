@@ -26,7 +26,7 @@ program fdtd
     f0 = 0.05
     f1 = 0.2
     chirp_duration = 10
-    steer_angle_deg = 45.0
+    steer_angle_deg = 0.0
     rx_x = 25
     rx_y = 100
 
@@ -59,7 +59,7 @@ program fdtd
     end do
 
     open(10, file="output.dat", status="replace")
-    open(20, file="radar.dat", status="replace")
+    open(20, file="radar_zero.dat", status="replace")
 
     i_center = nx / 2
     j_center = ny / 2
