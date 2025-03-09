@@ -1,4 +1,4 @@
-program fdtd
+program fdtd 
     implicit none
     integer, parameter :: nx = 200, ny = 200, nt = 2500, arrlen = 100
     integer, parameter :: pml_thickness = 10  ! Add PML
@@ -27,10 +27,10 @@ program fdtd
     f1 = 0.2
     chirp_duration = 10
     steer_angle_deg = -45
-    rx_x = 25
+    rx_x = 100
     rx_y = 100
 
-    tx_x = 25
+    tx_x = 100
     tx_y = [(nint(real(ny)/2.0 - real(arrlen)/2.0 + real(i)), i = 1, arrlen)]
 
     ! Initialize steering weights
@@ -125,11 +125,11 @@ program fdtd
             end do
         end do
 
-!        do i = 1, nx
-!            Ez(24, i) = 0.0
-!            Ezx(24, i) = 0.0  ! Ensure PML fields are consistent
-!            Ezy(24, i) = 0.0
-!        end do
+        do i = 1, nx
+            Ez(99, i) = 0.0
+            Ezx(99, i) = 0.0  ! Ensure PML fields are consistent
+            Ezy(99, i) = 0.0
+        end do
         ! Removed Mur's ABC - PML handles boundaries now
 
         if (mod(t, 5) == 0) then
