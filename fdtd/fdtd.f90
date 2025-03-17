@@ -1,11 +1,10 @@
 program fdtd
     implicit none
-    integer, parameter :: nx = 200, ny = 200, nt = 2500, arrlen = 100
-    integer, parameter :: pml_thickness = 10  ! Add PML
+    integer, parameter :: nx = 1000, ny = 1000, nt = 10000, arrlen = 100
+    integer, parameter :: pml_thickness = 50
     real, parameter :: dx = 1.0, dy = 1.0, dt = 0.1
-    real :: Hx(nx, ny), Hy(nx, ny), Ez(nx, ny)
-    real :: mu(nx, ny), epsilon(nx, ny)
-    real :: Ezx(nx, ny), Ezy(nx, ny)  
+    real, allocatable :: Hx(:, :), Hy(:, :), Ez(:, :), mu(:, :), epsilon(:, :), Ezx(:, :), Ezy(:, :)
+    real, allocatable :: sigma_x(:), sigma_y(:)
     integer :: i, j, t, i_center, j_center, radius, percent, filled, bar_length
     integer :: rx_x, rx_y, tx_x
     real, parameter :: c_mur = (1.0 - dt / dx) / (1.0 + dt / dx)
@@ -13,12 +12,15 @@ program fdtd
     real :: a, b
     integer, dimension(arrlen) :: tx_y
     real :: weights(arrlen)
-    real :: sigma_x(nx), sigma_y(ny)  
+
+    ! Allocate arrays dynamically
+    allocate(Hx(nx, ny), Hy(nx, ny), Ez(nx, ny), mu(nx, ny), epsilon(nx, ny), Ezx(nx, ny), Ezy(nx, ny))
+    allocate(sigma_x(nx), sigma_y(ny))
 
     Hx = 0.0
     Hy = 0.0
     Ez = 0.0
-    Ezx = 0.0  
+    Ezx = 0.0
     Ezy = 0.0
     mu = 1.0
     epsilon = 1.0
@@ -28,14 +30,14 @@ program fdtd
     chirp_duration = 10
     steer_angle_deg = 0.0
     rx_x = 25
-    rx_y = 100
+    rx_y = 400
 
     tx_x = 25
     tx_y = [(nint(real(ny)/2.0 - real(arrlen)/2.0 + real(i)), i = 1, arrlen)]
 
     ! Initialize steering weights
     do i = 1, arrlen
-        weights(i) = exp(-((tx_y(i) - 100.0)**2) / (2.0 * (arrlen / 4.0)**2))
+        weights(i) = exp(-((tx_y(i) - 500.0)**2) / (2.0 * (arrlen / 4.0)**2))
     end do
 
     ! PML setup
@@ -65,28 +67,19 @@ program fdtd
     j_center = ny / 2
     radius = min(nx, ny) / 6
 
-    do i = 1, nx
-        do j = 1, ny
-            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
-                mu(i, j) = 2.0
-                epsilon(i, j) = 4.0
-            end if
-        end do
-    end do
+    ! do i = 1, nx
+    !     do j = 1, ny
+    !         if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
+    !             mu(i, j) = 2.0
+    !             epsilon(i, j) = 4.0
+    !         end if
+    !     end do
+    ! end do
 
     i_center = nx / 2
     j_center = ny / 2
     a = real(nx) / 6.0
     b = real(ny) / 10.0
-
-!    do i = 1, nx
-!        do j = 1, ny
-!            if (((i - i_center)**2 / a**2) + ((j - j_center)**2 / b**2) <= 1.0) then
-!                mu(i, j) = 2.0
-!                epsilon(i, j) = 4.0
-!            end if
-!        end do
-!    end do
 
     print *, "Starting FDTD Simulation..."
     bar_length = 40
@@ -95,10 +88,10 @@ program fdtd
         if (t <= chirp_duration) then
             t_norm = real(t) / chirp_duration
             do i = 1, arrlen
-                Ez(tx_x, tx_y(i)) = 10.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
-                    2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * (tx_y(i) - 100) * &
+                Ez(tx_x, tx_y(i)) = 100.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
+                    2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * (tx_y(i) - 500.0) * &
                     sin(steer_angle_deg * 3.14159 / 180.0))
-                Ezx(tx_x, tx_y(i)) = Ez(tx_x, tx_y(i))  ! Sync PML fields with source
+                Ezx(tx_x, tx_y(i)) = Ez(tx_x, tx_y(i))
                 Ezy(tx_x, tx_y(i)) = Ez(tx_x, tx_y(i))
             end do
         end if
@@ -127,19 +120,18 @@ program fdtd
 
         do i = 1, nx
             Ez(24, i) = 0.0
-            Ezx(24, i) = 0.0  ! Ensure PML fields are consistent
+            Ezx(24, i) = 0.0
             Ezy(24, i) = 0.0
         end do
-        ! Removed Mur's ABC - PML handles boundaries now
 
-        if (mod(t, 5) == 0) then
+        if (mod(t, 50) == 0) then
             write(10, *) "Timestep:", t
             do i = 1, nx
-                write(10, '(200F8.4)') (Ez(i, j), j = 1, ny)
+                write(10, '(1000F8.4)') (Ez(i, j), j = 1, ny)
             end do
         end if
 
-        if (mod(t, 5) == 0) then
+        if (mod(t, 50) == 0) then
             if (t > 100) then
                 write(20, '(I5, F10.5)') t, Ez(rx_x, rx_y)
             else
