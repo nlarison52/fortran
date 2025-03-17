@@ -26,7 +26,7 @@ program fdtd
     f0 = 0.05
     f1 = 0.2
     chirp_duration = 10
-    steer_angle_deg = -45
+    steer_angle_deg = 0.0
     rx_x = 25
     rx_y = 100
 
@@ -65,14 +65,14 @@ program fdtd
     j_center = ny / 2
     radius = min(nx, ny) / 6
 
-!    do i = 1, nx
-!        do j = 1, ny
-!            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
-!                mu(i, j) = 2.0
-!                epsilon(i, j) = 4.0
-!            end if
-!        end do
-!    end do
+    do i = 1, nx
+        do j = 1, ny
+            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
+                mu(i, j) = 2.0
+                epsilon(i, j) = 4.0
+            end if
+        end do
+    end do
 
     i_center = nx / 2
     j_center = ny / 2
