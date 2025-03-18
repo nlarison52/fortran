@@ -1,19 +1,27 @@
-program coarray_test
+program coarray_sum
     implicit none
-    integer :: me, total
-    integer, codimension[*] :: x  ! Declare a coarray variable
+    integer :: me, total, local_value, i
+    integer, codimension[*] :: all_values
+    integer :: sum_result
 
-    ! Get image number (me) and total number of images
     me = this_image()
     total = num_images()
 
-    ! Assign unique values per image
-    x = me * 10
+    local_value = me
 
-    ! Sync images before reading
+    all_values = local_value
+
     sync all
 
-    ! Print data from another image (modulo trick for circular access)
-    print *, "Image", me, "sees x from Image", mod(me, total) + 1, ":", x[mod(me, total) + 1]
+    if (me == 1) then
+        sum_result = 0
 
-end program coarray_test
+        do concurrent(i = 1:total)
+            sum_result = sum_result + all_values[i]
+        end do
+
+        print *, "Total sum from all images: ", sum_result
+
+    end if
+
+end program coarray_sum

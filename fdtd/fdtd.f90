@@ -88,7 +88,7 @@ program fdtd
         if (t <= chirp_duration) then
             t_norm = real(t) / chirp_duration
             do i = 1, arrlen
-                Ez(tx_x, tx_y(i)) = 500.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
+                Ez(tx_x, tx_y(i)) = 10.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
                     2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * (tx_y(i) - 500.0) * &
                     sin(steer_angle_deg * 3.14159 / 180.0))
                 Ezx(tx_x, tx_y(i)) = Ez(tx_x, tx_y(i))
