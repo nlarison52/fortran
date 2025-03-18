@@ -19,6 +19,8 @@ end
 nx = 1000;
 ny = 1000;
 Ez = zeros(nx, ny);
+
+
 timesteps = [];
 data_blocks = {};
 

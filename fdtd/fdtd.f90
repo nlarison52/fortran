@@ -67,14 +67,14 @@ program fdtd
     j_center = ny / 2
     radius = min(nx, ny) / 6
 
-    ! do i = 1, nx
-    !     do j = 1, ny
-    !         if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
-    !             mu(i, j) = 2.0
-    !             epsilon(i, j) = 4.0
-    !         end if
-    !     end do
-    ! end do
+    do i = 1, nx
+        do j = 1, ny
+            if ((i - i_center)**2 + (j - j_center)**2 <= radius**2) then
+                mu(i, j) = 2.0
+                epsilon(i, j) = 4.0
+            end if
+        end do
+    end do
 
     i_center = nx / 2
     j_center = ny / 2
@@ -88,7 +88,7 @@ program fdtd
         if (t <= chirp_duration) then
             t_norm = real(t) / chirp_duration
             do i = 1, arrlen
-                Ez(tx_x, tx_y(i)) = 100.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
+                Ez(tx_x, tx_y(i)) = 500.0 * weights(i) * sin(2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * t + &
                     2.0 * 3.14159 * (f0 + (f1 - f0) * t_norm) * (tx_y(i) - 500.0) * &
                     sin(steer_angle_deg * 3.14159 / 180.0))
                 Ezx(tx_x, tx_y(i)) = Ez(tx_x, tx_y(i))
