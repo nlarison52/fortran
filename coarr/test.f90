@@ -1,27 +1,19 @@
-program coarray_sum
+program test
     implicit none
-    integer :: me, total, local_value, i
-    integer, codimension[*] :: all_values
-    integer :: sum_result
+    integer :: my_rank
+    integer, allocatable, dimension(:) :: x[:]
 
-    me = this_image()
-    total = num_images()
+    my_rank = this_image()
 
-    local_value = me
+    allocate(x(my_rank)[*])
 
-    all_values = local_value
+    x = my_rank
 
     sync all
 
-    if (me == 1) then
-        sum_result = 0
+    print *, "Im num: ", my_rank
+    print *, "Value: ", x
 
-        do concurrent(i = 1:total)
-            sum_result = sum_result + all_values[i]
-        end do
 
-        print *, "Total sum from all images: ", sum_result
 
-    end if
-
-end program coarray_sum
+end program test
