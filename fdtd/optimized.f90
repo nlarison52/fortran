@@ -102,7 +102,7 @@ program fdtd
             Hy(i, j) = Hy(i, j) + (dt / mu(i, j)) * (Ez(i+1, j) - Ez(i, j)) / dx
         end do
 
-        do concurrent(i = 2:nx-1, j= 2, ny-1)
+        do concurrent(i = 2:nx-1, j= 2:ny-1)
             Ezx(i, j) = Ezx(i, j) * (1.0 - sigma_x(i) * dt / epsilon(i, j)) + &
                         (dt / epsilon(i, j)) * (Hy(i, j) - Hy(i-1, j)) / dx
             Ezy(i, j) = Ezy(i, j) * (1.0 - sigma_y(j) * dt / epsilon(i, j)) - &
