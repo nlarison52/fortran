@@ -1,39 +1,26 @@
 program test
-  implicit none
-  integer :: my_rank, row, col, i, j, source_image
-  real(8) :: x(2, 2), z(2, 2)[*]
-  integer :: num_procs
+    implicit none
+    integer :: i, me
+    integer :: A(4, 4)[*]
+    integer :: b(4), z[*]
 
-  ! Explicit declaration
-  real(8), external :: ddot
+    b = [(i, i = 1,4)]
 
-  x = 1.0d0
-  my_rank = this_image()
-  num_procs = num_images()
+    me = this_image()
+    A(me, :) = me
 
-  if (num_procs /= 4) then
-      if (my_rank == 1) print *, "Run with exactly 4 images!"
-      stop
-  end if
+    z = dot_product(A(me, :), b)
 
-  ! Correct mapping of image rank to matrix indices
-  row = (my_rank - 1) / 2 + 1
-  col = mod(my_rank - 1, 2) + 1
 
-  ! Compute the matrix element (row, col)
-  z(row, col) = ddot(2, x(row, :), 2, x(:, col), 1)
+    sync all
+    if (this_image() == 1) then
 
-  sync all  ! Wait for all computations
+    print *, "Image 1 sees: "
 
-  if (my_rank == 1) then
-      print *, "Final Matrix is:"
-      do i = 1, 2
-          do j = 1, 2
-              source_image = (i - 1) * 2 + j
-              z(i,j) = z(i,j)[source_image]
-          end do
-          print '(2F8.2)', z(i,:)
-      end do
-  end if
+        do i = 1, num_images()
+            print *, z[i]
+
+        end do
+    end if
 
 end program test
