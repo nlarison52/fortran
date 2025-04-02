@@ -1,26 +1,25 @@
 program test
     implicit none
     integer :: i, me
-    integer :: A(4, 4)[*]
-    integer :: b(4), z[*]
+    integer :: max = 0
+    integer :: x[*]
 
-    b = [(i, i = 1,4)]
 
     me = this_image()
-    A(me, :) = me
-
-    z = dot_product(A(me, :), b)
-
+    call random_seed()
+    x = random_number()
 
     sync all
-    if (this_image() == 1) then
 
-    print *, "Image 1 sees: "
-
+    if (me == 1) then
         do i = 1, num_images()
-            print *, z[i]
-
+            print *, "Image", i, "value: ", x[i]
+            if (x[i] > max) then
+                x = x[i]
+            end if
         end do
+
     end if
+
 
 end program test
