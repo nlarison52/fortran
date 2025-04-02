@@ -3,11 +3,13 @@ program test
     integer :: i, me
     integer :: max = 0
     integer :: x[*]
+    real :: r
 
 
     me = this_image()
     call random_seed()
-    x = random_number()
+    call random_number(r)
+    x = int(r * 100) + 1
 
     sync all
 
@@ -15,9 +17,11 @@ program test
         do i = 1, num_images()
             print *, "Image", i, "value: ", x[i]
             if (x[i] > max) then
-                x = x[i]
+                max = x[i]
             end if
         end do
+
+        print *, "Max val: ", max
 
     end if
 
