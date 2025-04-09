@@ -1,8 +1,7 @@
 program test
     implicit none
-    integer, allocatable :: glob_arr(:)
-    integer :: loc_arr(5)[*], i, cur_min, j
-    integer :: loc_ptr[*]
+    integer, allocatable :: glob_arr(:), ptrs(:), final_arr(:)
+    integer :: loc_arr(5)[*], i, cur_min, j, cur_j
     real :: r(5)
 
     call random_seed()
@@ -12,32 +11,37 @@ program test
 
     call sort_in_place(loc_arr)
 
-    loc_ptr = 1
 
     if (this_image() == 1) then
         allocate(glob_arr(5 * num_images()))
-
+        allocate(final_arr(5 * num_images()))
         do i = 1, num_images()
             glob_arr((i - 1) * 5 + 1 : (i - 1) * 5 + 5) = loc_arr(:)[i]
         end do
 
-        print *, glob_arr
+        ! print *, glob_arr
+
+        allocate(ptrs(num_images()))
+        ptrs = 1
 
 
-        do i = 1, num_images() * 5
+        do i = 1, 5 * num_images()
+            cur_min = huge(0)
+            cur_j = -1
             do j = 1, num_images()
-                if (loc_arr(loc_ptr[i])[i] < cur_min) then
-                    cur_min = loc_arr(loc_ptr[i])[i] 
-                    loc_ptr[i] = loc_ptr[i] + 1
-                    ! this logic is incorrect, 
-                    ! needs to increment local ptr only if that is selected from all remote arrays
-                    ! (already sorted so just select from lowest index)
+                if (ptrs(j) > 5) cycle
+
+                if (glob_arr((j-1)*5+ptrs(j)) < cur_min) then
+                    cur_min = glob_arr((j-1)*5+ptrs(j))
+                    cur_j = j
+
                 end if
             end do
+            final_arr(i) = cur_min
+            ptrs(cur_j) = ptrs(cur_j) + 1
+        end do
 
-            glob_arr(i) = cur_min 
-        end do 
-
+        print *, final_arr
     end if 
 
 
