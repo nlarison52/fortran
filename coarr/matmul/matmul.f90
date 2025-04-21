@@ -3,7 +3,9 @@ program matmul
     real, allocatable :: A(:,:)[:], B(:,:)[:], Z(:,:)[:]
     integer :: n, i, j, chunk, remainder, images, me, offset
 
-    n = 6
+    n = 10
+
+
 
     images = num_images()
     me = this_image()
