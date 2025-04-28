@@ -68,7 +68,7 @@ program matmul
 
 
     sync all
-
+    ! test loop for individual images
     ! if (me == 4) then
     !     do i = 1, n
     !         print *, Z(i, :)
